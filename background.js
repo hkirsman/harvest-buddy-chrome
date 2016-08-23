@@ -32,13 +32,22 @@ var config = {
  * @private
  */
 var _getTimesMonth = function() {
-  var date = new Date();
-  var firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString().slice(0, 10).split('-').join('');
-  var lastDayofMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10).split('-').join('');
+  var date = new Date(),
+      firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString().slice(0, 10).split('-').join(''),
+      lastDayofMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10).split('-').join(''),
+      billable,
+      nonBillable;
   $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + firstDayOfMonth + '&kind=month&till=' + lastDayofMonth, function(data) {
     $html = $(data);
-    var billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
-    var nonBillable = parseFloat($html.find('span.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    if ($html.find('span.billable-percent-key').length) {
+      billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
+      nonBillable = parseFloat($html.find('span.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    }
+    else {
+      billable = 0;
+      nonBillable = 0;
+    }
+
     times.month = {
       "billable": billable,
       "nonBillable": nonBillable
@@ -51,15 +60,24 @@ var _getTimesMonth = function() {
  * @private
  */
 var _getTimesWeek = function() {
-  var curr = new Date; // Get current date.
-  var first = curr.getDate() - curr.getDay(); // First day is the day of the month - the day of the week
-  var last = first + 6; // Last day is the first day + 6
-  var firstday = new Date(curr.setDate(first)).toISOString().slice(0, 10).split('-').join('');
-  var lastday = new Date(curr.setDate(last)).toISOString().slice(0, 10).split('-').join('');
+  var curr = new Date, // Get current date.
+      first = curr.getDate() - curr.getDay(), // First day is the day of the month - the day of the week
+      last = first + 6, // Last day is the first day + 6
+      firstday = new Date(curr.setDate(first)).toISOString().slice(0, 10).split('-').join(''),
+      lastday = new Date(curr.setDate(last)).toISOString().slice(0, 10).split('-').join(''),
+      billable,
+      nonBillable;
   $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + firstday + '&kind=custom&till=' + lastday, function(data) {
     $html = $(data);
-    var billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
-    var nonBillable = parseFloat($html.find('span.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    if ($html.find('span.billable-percent-key').length) {
+      billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
+      nonBillable = parseFloat($html.find('span.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    }
+    else {
+      billable = 0;
+      nonBillable = 0;
+    }
+
     times.week = {
       "billable": billable,
       "nonBillable": nonBillable
@@ -72,11 +90,20 @@ var _getTimesWeek = function() {
  * @private
  */
 var _getTimesDay = function() {
-  var today = new Date().toISOString().slice(0, 10).split('-').join('');
+  var today = new Date().toISOString().slice(0, 10).split('-').join(''),
+      billable,
+      nonBillable;
+
   $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + today + '&kind=custom&till=' + today, function(data) {
     $html = $(data);
-    var billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
-    var nonBillable = parseFloat($html.find('span.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    if ($html.find('SPAN.billable-percent-key').length) {
+      billable = parseFloat($html.find('SPAN.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
+      nonBillable = parseFloat($html.find('SPAN.key-unbillable')[0].nextSibling.nodeValue.replace(',', '.'));
+    }
+    else {
+      billable = 0;
+      nonBillable = 0;
+    }
     times.day = {
       "billable": billable,
       "nonBillable": nonBillable
@@ -113,7 +140,12 @@ var _updateDayBar = function() {
   else {
     // If workday is not over.
 
-
+    if (billableDayPercent >= config.minBillablePercent && totalDayTime + (timediff / (1000 * 60 * 60)) >= config.minDayHours) {
+      dayOk = true;
+    }
+    else {
+      dayOk = false;
+    }
   }
 
   if (dayOk) {

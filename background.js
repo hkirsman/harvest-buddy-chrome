@@ -205,4 +205,4 @@ var _updateTimes = function() {
 _drawInitialButton();
 
 _updateTimes();
-setInterval(_updateTimes, 1000 * 60 * 10);
+setInterval(_updateTimes, 1000 * 60 * 5);

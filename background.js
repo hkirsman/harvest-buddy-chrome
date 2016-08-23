@@ -1,4 +1,5 @@
 var config = {
+    'uid': 960362,
     'minBillablePercent': 0.7,
     'minDayHours': 7.5,
     'workdayEnds': {
@@ -75,7 +76,7 @@ var _getTimesMonth = function() {
       lastDayofMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().slice(0, 10).split('-').join(''),
       billable,
       nonBillable;
-  $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + firstDayOfMonth + '&kind=month&till=' + lastDayofMonth, function(data) {
+  $.get('https://mearra.harvestapp.com/reports/users/' + config.uid + '?from=' + firstDayOfMonth + '&kind=month&till=' + lastDayofMonth, function(data) {
     $html = $(data);
     if ($html.find('span.billable-percent-key').length) {
       billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
@@ -107,7 +108,7 @@ var _getTimesWeek = function() {
       lastday = new Date(curr.setDate(last)).toISOString().slice(0, 10).split('-').join(''),
       billable,
       nonBillable;
-  $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + firstday + '&kind=custom&till=' + lastday, function(data) {
+  $.get('https://mearra.harvestapp.com/reports/users/' + config.uid + '?from=' + firstday + '&kind=custom&till=' + lastday, function(data) {
     $html = $(data);
     if ($html.find('span.billable-percent-key').length) {
       billable = parseFloat($html.find('span.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));
@@ -134,7 +135,7 @@ var _getTimesDay = function() {
       billable,
       nonBillable;
 
-  $.get('https://mearra.harvestapp.com/reports/users/960362?from=' + today + '&kind=custom&till=' + today, function(data) {
+  $.get('https://mearra.harvestapp.com/reports/users/' + config.uid + '?from=' + today + '&kind=custom&till=' + today, function(data) {
     $html = $(data);
     if ($html.find('SPAN.billable-percent-key').length) {
       billable = parseFloat($html.find('SPAN.billable-percent-key')[0].nextSibling.nodeValue.replace(',', '.'));

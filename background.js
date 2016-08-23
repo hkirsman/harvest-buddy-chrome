@@ -28,6 +28,44 @@ var config = {
   svgButtonBarDay;
 
 /**
+ * Round to 2 decimals.
+ * @private
+ */
+var round = function(float) {
+  return Math.round(float * 100) / 100;
+};
+
+/**
+ * Get billable percent for day.
+ */
+var getBillablePercentDay = function() {
+  if (typeof times === 'undefined') {
+    var times = chrome.extension.getBackgroundPage().times;
+  }
+  return round(times.day.billable / (times.day.nonBillable + times.day.billable))
+};
+
+/**
+ * Get billable percent for week.
+ */
+var getBillablePercentWeek = function() {
+  if (typeof times === 'undefined') {
+    var times = chrome.extension.getBackgroundPage().times;
+  }
+  return round(times.week.billable / (times.week.nonBillable + times.week.billable))
+};
+
+/**
+ * Get billable percent for month.
+ */
+var getBillablePercentMonth = function() {
+  if (typeof times === 'undefined') {
+    var times = chrome.extension.getBackgroundPage().times;
+  }
+  return round(times.month.billable / (times.month.nonBillable + times.month.billable))
+};
+
+/**
  * Get month times from Harvest.
  * @private
  */

@@ -90,6 +90,8 @@ var _getTimesMonth = function() {
       "billable": billable,
       "nonBillable": nonBillable
     };
+
+    _updateMonthBar();
   });
 };
 
@@ -150,6 +152,9 @@ var _getTimesDay = function() {
   });
 };
 
+/**
+ * Check day times against different rules and figure out if month is ok or not.
+ */
 var _updateDayBar = function() {
   var
     dayOk = false,
@@ -163,27 +168,21 @@ var _updateDayBar = function() {
     workdayEndsDate = new Date(year, month, day, hours, minutes, seconds, milliseconds),
     timediff = workdayEndsDate.getTime() - new Date().getTime(),
     totalDayTime = times.day.billable + times.day.nonBillable,
-    billableDayPercent = times.day.billable / totalDayTime;
+    billableDayPercent = times.day.billable / totalDayTime,
+    isBillableOk = billableDayPercent >= config.minBillablePercent,
+    isTotalHoursOk;
 
   if (timediff <= 0) {
     // If workday is over.
 
-    if (billableDayPercent >= config.minBillablePercent && totalDayTime >= config.minDayHours) {
-      dayOk = true;
-    }
-    else {
-      dayOk = false;
-    }
+    isTotalHoursOk = totalDayTime >= config.minDayHours;
+    dayOk = isBillableOk && isTotalHoursOk;
   }
   else {
     // If workday is not over.
 
-    if (billableDayPercent >= config.minBillablePercent && totalDayTime + (timediff / (1000 * 60 * 60)) >= config.minDayHours) {
-      dayOk = true;
-    }
-    else {
-      dayOk = false;
-    }
+    isTotalHoursOk = totalDayTime + (timediff / (1000 * 60 * 60)) >= config.minDayHours;
+    dayOk = isBillableOk && isTotalHoursOk;
   }
 
   if (dayOk) {
@@ -194,10 +193,60 @@ var _updateDayBar = function() {
   }
 };
 
+/**
+ * Check month times against different rules and figure out if month is ok or not.
+ */
+var _updateMonthBar = function() {
+  var businessDays = _businessDays(new Date());
+  var totalMonthTime = times.month.billable + times.month.nonBillable;
+  var isBillableOk = getBillablePercentMonth() >= config.minBillablePercent;
+  var isTotalHoursOk = totalMonthTime >= businessDays[0] * config.minDayHours;
+
+  if (isBillableOk && isTotalHoursOk) {
+    _drawMonthBar(config.colorBarOk);
+  }
+  else {
+    _drawMonthBar(config.colorBarNotOk)
+  }
+};
+
+/**
+ * Draw/update day bar on the icon.
+ */
 _drawDayBar = function(color) {
   var context = canvas.getContext('2d');
   context.beginPath();
   context.rect(1, 0, 5, 19);
+  context.fillStyle = color;
+  context.fill();
+
+  chrome.browserAction.setIcon({
+    imageData: context.getImageData(0, 0, 19, 19)
+  });
+};
+
+/**
+ * Draw/update week bar on the icon.
+ */
+_drawWeekBar = function(color) {
+  var context = canvas.getContext('2d');
+  context.beginPath();
+  context.rect(7, 0, 5, 19);
+  context.fillStyle = color;
+  context.fill();
+
+  chrome.browserAction.setIcon({
+    imageData: context.getImageData(0, 0, 19, 19)
+  });
+};
+
+/**
+ * Draw/update month bar on the icon.
+ */
+_drawMonthBar = function(color) {
+  var context = canvas.getContext('2d');
+  context.beginPath();
+  context.rect(13, 0, 5, 19);
   context.fillStyle = color;
   context.fill();
 
@@ -216,23 +265,46 @@ function _drawInitialButton() {
   context.fillRect(0, 0, 19, 19);
 
   _drawDayBar(config.colorBarOk);
-
-  context = canvas.getContext('2d');
-  context.beginPath();
-  context.rect(7, 0, 5, 19);
-  context.fillStyle = "#92CD00";
-  context.fill();
-
-  context = canvas.getContext('2d');
-  context.beginPath();
-  context.rect(13, 0, 5, 19);
-  context.fillStyle = "#92CD00";
-  context.fill();
+  _drawWeekBar(config.colorBarOk);
+  _drawMonthBar(config.colorBarOk);
 
   chrome.browserAction.setIcon({
     imageData: context.getImageData(0, 0, 19, 19)
   });
 }
+
+/**
+ * Calculate business days in a month.
+ */
+var _businessDays = function(date) {
+
+  // Copy date
+  var t = new Date(date);
+  // Remember the month number
+  var m = date.getMonth();
+  var d = date.getDate();
+  var daysPast = 0, daysToGo = 0;
+  var day;
+
+  // Count past days
+  while  (t.getMonth() == m) {
+    day = t.getDay();
+    daysPast += (day == 0 || day == 6)? 0 : 1;
+    t.setDate(--d);
+  }
+
+  // Reset and count days to come
+  t = new Date(date);
+  t.setDate(t.getDate() + 1);
+  d = t.getDate();
+
+  while  (t.getMonth() == m) {
+    day = t.getDay();
+    daysToGo += (day == 0 || day == 6)? 0 : 1;
+    t.setDate(++d);
+  }
+  return [daysPast, daysToGo];
+};
 
 var _updateTimes = function() {
   _getTimesMonth();

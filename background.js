@@ -43,7 +43,7 @@ var getBillablePercentDay = function() {
   if (typeof times === 'undefined') {
     var times = chrome.extension.getBackgroundPage().times;
   }
-  var totalDayTime = times.week.nonBillable + times.week.billable;
+  var totalDayTime = times.day.nonBillable + times.day.billable;
   return totalDayTime > 0 ? round(times.day.billable / totalDayTime) : 0;
 };
 

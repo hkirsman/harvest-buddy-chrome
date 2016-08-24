@@ -2,6 +2,10 @@ var bg = chrome.extension.getBackgroundPage();
 
 var round = bg.round;
 
+// Get latest data when popup is opened.
+// @todo. needs 2 times to open to see the real content.
+bg._updateTimes();
+
 var msg = '' +
     '<div style="color:' + (bg.getBillablePercentDay() > bg.config.minBillablePercent ? 'green': 'red') + '">' +
       '<h2>Day</h2>' +

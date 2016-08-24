@@ -95,7 +95,7 @@ var _getTimesMonth = function() {
       "nonBillable": nonBillable
     };
 
-    _updateMonthBar();
+    _drawUpdateMonthBar();
   });
 };
 
@@ -152,14 +152,14 @@ var _getTimesDay = function() {
       "billable": billable,
       "nonBillable": nonBillable
     };
-    _updateDayBar();
+    _drawUpdateDayBar();
   });
 };
 
 /**
- * Check day times against different rules and figure out if month is ok or not.
+ * Check if stats for day are ok.
  */
-var _updateDayBar = function() {
+var _isStatsForDayOk = function() {
   var
     dayOk = false,
     year = new Date().getFullYear(),
@@ -189,35 +189,79 @@ var _updateDayBar = function() {
     dayOk = isBillableOk && isTotalHoursOk;
   }
 
-  if (dayOk) {
-    _drawDayBar(config.colorBarOk);
-  }
-  else {
-    _drawDayBar(config.colorBarNotOk)
-  }
+  return dayOk;
 };
 
 /**
- * Check month times against different rules and figure out if month is ok or not.
+ * Check if stats for week are ok.
+ * @todo
  */
-var _updateMonthBar = function() {
-  var businessDays = _businessDays(new Date());
-  var totalMonthTime = times.month.billable + times.month.nonBillable;
-  var isBillableOk = getBillablePercentMonth() >= config.minBillablePercent;
-  var isTotalHoursOk = totalMonthTime >= businessDays[0] * config.minDayHours;
+var _isStatsForWeekOk = function() {
+
+};
+
+/**
+ * Check if stats for month are ok.
+ */
+var _isStatsForMonthOk = function() {
+  var dayOk = false,
+      businessDays = _businessDays(new Date()),
+      totalMonthTime = times.month.billable + times.month.nonBillable,
+      isBillableOk = getBillablePercentMonth() >= config.minBillablePercent,
+      isTotalHoursOk = totalMonthTime >= businessDays[0] * config.minDayHours;
 
   if (isBillableOk && isTotalHoursOk) {
-    _drawMonthBar(config.colorBarOk);
+    dayOk = true;
   }
-  else {
-    _drawMonthBar(config.colorBarNotOk)
-  }
+
+  return dayOk;
 };
+
+///**
+// * Update daybar on icon.
+// */
+//var _updateDayBar = function() {
+//  if (_isStatsForDayOk()) {
+//    _drawUpdateDayBar(config.colorBarOk);
+//  }
+//  else {
+//    _drawUpdateDayBar(config.colorBarNotOk)
+//  }
+//};
+
+/**
+ * Update weekbar on icon.
+ * @todo
+ */
+var _updateWeekBar = function() {
+
+};
+
+///**
+// * Update weekbar on icon.
+// */
+//var _updateMonthBar = function() {
+//  if (_isStatsForMonthOk()) {
+//    _drawUpdateMonthBar(config.colorBarOk);
+//  }
+//  else {
+//    _drawUpdateMonthBar(config.colorBarNotOk)
+//  }
+//};
 
 /**
  * Draw/update day bar on the icon.
  */
-_drawDayBar = function(color) {
+var _drawUpdateDayBar = function(color) {
+  if (typeof color === 'undefined') {
+    if (_isStatsForDayOk()) {
+      color = config.colorBarOk;
+    }
+    else {
+      color = config.colorBarNotOk;
+    }
+  }
+
   var context = canvas.getContext('2d');
   context.beginPath();
   context.rect(1, 0, 5, 19);
@@ -232,7 +276,7 @@ _drawDayBar = function(color) {
 /**
  * Draw/update week bar on the icon.
  */
-_drawWeekBar = function(color) {
+var _drawUpdateWeekBar = function(color) {
   var context = canvas.getContext('2d');
   context.beginPath();
   context.rect(7, 0, 5, 19);
@@ -247,7 +291,16 @@ _drawWeekBar = function(color) {
 /**
  * Draw/update month bar on the icon.
  */
-_drawMonthBar = function(color) {
+var _drawUpdateMonthBar = function(color) {
+  if (typeof color === 'undefined') {
+    if (_isStatsForMonthOk()) {
+      color = config.colorBarOk;
+    }
+    else {
+      color = config.colorBarNotOk;
+    }
+  }
+
   var context = canvas.getContext('2d');
   context.beginPath();
   context.rect(13, 0, 5, 19);
@@ -259,7 +312,7 @@ _drawMonthBar = function(color) {
   });
 };
 
-function _drawInitialButton() {
+var _drawInitialButton = function() {
   canvas = document.createElement('canvas'); // Create the canvas
   canvas.width = 19;
   canvas.height = 19;
@@ -268,14 +321,14 @@ function _drawInitialButton() {
   context.fillStyle = "#fff";
   context.fillRect(0, 0, 19, 19);
 
-  _drawDayBar(config.colorBarOk);
-  _drawWeekBar(config.colorBarOk);
-  _drawMonthBar(config.colorBarOk);
+  _drawUpdateDayBar(config.colorBarOk);
+  _drawUpdateWeekBar(config.colorBarOk);
+  _drawUpdateMonthBar(config.colorBarOk);
 
   chrome.browserAction.setIcon({
     imageData: context.getImageData(0, 0, 19, 19)
   });
-}
+};
 
 /**
  * Calculate business days in a month.

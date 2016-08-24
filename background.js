@@ -43,7 +43,8 @@ var getBillablePercentDay = function() {
   if (typeof times === 'undefined') {
     var times = chrome.extension.getBackgroundPage().times;
   }
-  return round(times.day.billable / (times.day.nonBillable + times.day.billable))
+  var totalDayTime = times.week.nonBillable + times.week.billable;
+  return totalDayTime > 0 ? round(times.day.billable / totalDayTime) : 0;
 };
 
 /**
@@ -53,7 +54,8 @@ var getBillablePercentWeek = function() {
   if (typeof times === 'undefined') {
     var times = chrome.extension.getBackgroundPage().times;
   }
-  return round(times.week.billable / (times.week.nonBillable + times.week.billable))
+  var totalWeekTime = times.week.nonBillable + times.week.billable;
+  return totalWeekTime > 0 ? round(times.week.billable / totalWeekTime) : 0;
 };
 
 /**
@@ -63,7 +65,8 @@ var getBillablePercentMonth = function() {
   if (typeof times === 'undefined') {
     var times = chrome.extension.getBackgroundPage().times;
   }
-  return round(times.month.billable / (times.month.nonBillable + times.month.billable))
+  var totalMonthTime = times.month.nonBillable + times.month.billable;
+  return totalMonthTime > 0 ? round(times.month.billable / totalMonthTime) : 0;
 };
 
 /**
